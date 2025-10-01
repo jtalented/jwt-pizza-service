@@ -41,6 +41,7 @@ beforeAll(async () => {
   };
   const registerRes = await request(app).post('/api/auth').send(testUser);
   testUserAuthToken = registerRes.body.token;
+  testUser = registerRes.body.user;
 
 
 
@@ -98,12 +99,14 @@ test('update user', async () => {
     .send(updatedData);
   
 
-
-    
-  expect(res.status).toBe(403);
+  expect(res.status).toBe(200);
+  expect(res.body.user.name).toBe('Updated Name');
+  expectValidJwt(res.body.token);
 });
 
-
+function expectValidJwt(potentialJwt) {
+  expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
+}
 
 
 
@@ -151,6 +154,9 @@ test('admin can update anyuser', async () => {
     .set('Authorization', `Bearer ${adminAuthToken}`)
     .send(updatedData);
   
-  expect(res.status).toBe(500);
+
+  expect(res.status).toBe(200);
+  expect(res.body.user.name).toBe('Admin Updated Name');
+  expectValidJwt(res.body.token);
 });
 

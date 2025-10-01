@@ -141,7 +141,7 @@ test('getother user franchises as non-admin', async () => {
 
 test('create franchise as admin', async () => {
   const franchiseData = {
-    name: 'Test Franchise',
+    name: 'Test Franchise ' + randomName(),
     admins: [{
       email: testUser.email
     }]
@@ -154,7 +154,8 @@ test('create franchise as admin', async () => {
     .set('Authorization', `Bearer ${adminAuthToken}`)
     .send(franchiseData);
   
-  expect(res.status).toBe(500);
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty('name', franchiseData.name);
 });
 
 
