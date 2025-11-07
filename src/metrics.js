@@ -7,6 +7,9 @@ const pizzaLatencies = [];
 const endpointLatencies = {};
 const activeUserIds = new Set();
 
+let lastCpuUsage = process.cpuUsage();
+let lastCpuTime = Date.now();
+
 
 
 
@@ -91,11 +94,35 @@ function pizzaPurchase(successful, latency, price) {
 
 // Get CPU usage percentage
 function getCpuUsagePercentage() {
-  const loadAvg = os.loadavg()[0];
-  const cpuCount = os.cpus().length;
+  const currentCpuUsage = process.cpuUsage();
+  const currentTime = Date.now();
   
-  const cpuUsage = loadAvg / cpuCount;
-  return parseFloat((cpuUsage * 100).toFixed(2));
+  const timeDelta = (currentTime - lastCpuTime) * 1000;
+  
+  if (timeDelta <= 0 || timeDelta < 10000) {
+    lastCpuUsage = currentCpuUsage;
+    lastCpuTime = currentTime;
+    return 0;
+  }
+  
+  const userDelta = currentCpuUsage.user - lastCpuUsage.user;
+  const systemDelta = currentCpuUsage.system - lastCpuUsage.system;
+  const totalDelta = userDelta + systemDelta;
+  
+
+  lastCpuUsage = currentCpuUsage;
+  lastCpuTime = currentTime;
+  
+  const cpuCount = os.cpus().length;
+  const cpuPercentage = (totalDelta / timeDelta) * 100 / cpuCount;
+  
+  if (isNaN(cpuPercentage) || !isFinite(cpuPercentage)) {
+    const loadAvg = os.loadavg()[0];
+    const cpuUsage = (loadAvg / cpuCount) * 100;
+    return parseFloat(cpuUsage.toFixed(2));
+  }
+  
+  return parseFloat(cpuPercentage.toFixed(2));
 }
 
 
@@ -202,6 +229,7 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
 //send metrics to Grafana
 async function sendMetricsToGrafana(metrics) {
   if (!config.metrics || !config.metrics.url || !config.metrics.apiKey) {
+    console.error('Metrics configuration missing. Cannot send metrics to Grafana.');
     return;
   }
 
