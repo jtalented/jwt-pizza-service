@@ -1,6 +1,5 @@
 const config = require('./config');
 const os = require('os');
-const { DB } = require('./database/database.js');
 const httpRequests = {};
 const authAttempts = { successful: 0, failed: 0 };
 const pizzaPurchases = { successful: 0, failed: 0, revenue: 0 };
