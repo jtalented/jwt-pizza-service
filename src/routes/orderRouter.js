@@ -79,7 +79,6 @@ orderRouter.post(
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
-    // Calculate total price from request before database operations
     const totalPrice = orderReq.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
     const order = await DB.addDinerOrder(req.user, orderReq);
     

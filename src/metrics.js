@@ -146,7 +146,7 @@ function getActiveUsersCount() {
 
 // Create a metric
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
-  attributes = { ...attributes, source: config.metrics.source };
+  attributes = { ...attributes, source: config.metrics?.source || 'unknown' };
 
 
 
@@ -371,9 +371,13 @@ async function sendMetricsPeriodically() {
 
 // Startreporting
 function startMetricReporting(period = 10000) {
-  setInterval(() => {
+  const interval = setInterval(() => {
     sendMetricsPeriodically();
   }, period);
+  if (interval.unref) {
+    interval.unref();
+  }
+  return interval;
 }
 
 module.exports = {
