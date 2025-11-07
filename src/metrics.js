@@ -5,7 +5,7 @@ const authAttempts = { successful: 0, failed: 0 };
 const pizzaPurchases = { successful: 0, failed: 0, revenue: 0 };
 const pizzaLatencies = [];
 const endpointLatencies = {};
-const activeUserIds = new Set();
+const activeUserTimestamps = {};
 
 let lastCpuUsage = process.cpuUsage();
 let lastCpuTime = Date.now();
@@ -20,9 +20,9 @@ function requestTracker(req, res, next) {
   
   httpRequests[method] = (httpRequests[method] || 0) + 1;
   
-  //track active users
+  //track active users with timestamp
   if (req.user && req.user.id) {
-    activeUserIds.add(req.user.id);
+    activeUserTimestamps[req.user.id] = Date.now();
   }
   
 
@@ -154,13 +154,22 @@ function getMemoryUsagePercentage() {
 
 
 
-//active users count
+//active users count - users active within last 5 minutes
 function getActiveUsersCount() {
+  const now = Date.now();
+  const fiveMinutesAgo = now - (5 * 60 * 1000);
+  
+  //remove users who haven't been active in the last 5 minutes
+  Object.keys(activeUserTimestamps).forEach((userId) => {
+    if (activeUserTimestamps[userId] < fiveMinutesAgo) {
+      delete activeUserTimestamps[userId];
+    }
+  });
+  
+  
 
-
-
-  //return the count of unique user IDs
-  return activeUserIds.size;
+  //return count of currently active users
+  return Object.keys(activeUserTimestamps).length;
 }
 
 
@@ -384,7 +393,6 @@ async function sendMetricsPeriodically() {
     pizzaPurchases.revenue = 0;
     
 
-    activeUserIds.clear();
     
     pizzaLatencies.length = 0;
     Object.keys(endpointLatencies).forEach((endpoint) => {
