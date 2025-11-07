@@ -230,13 +230,8 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
 async function sendMetricsToGrafana(metrics) {
   if (!config.metrics || !config.metrics.url || !config.metrics.apiKey) {
     console.error('Metrics configuration missing. Cannot send metrics to Grafana.');
-    console.error('Config.metrics exists:', !!config.metrics);
-    console.error('Config.metrics.url exists:', !!(config.metrics && config.metrics.url));
-    console.error('Config.metrics.apiKey exists:', !!(config.metrics && config.metrics.apiKey));
     return;
   }
-  
-  console.log(`Sending ${metrics.length} metrics to Grafana at ${config.metrics.url}`);
 
   const body = {
     resourceMetrics: [
@@ -272,13 +267,10 @@ async function sendMetricsToGrafana(metrics) {
 
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      console.error(`Grafana API error: HTTP ${response.status} - ${errorText}`);
       throw new Error(`HTTP status: ${response.status}`);
     }
-    console.log(`Successfully sent ${metrics.length} metrics to Grafana`);
   } catch (error) {
-    console.error('Error pushing metrics:', error.message);
+    console.error('Error pushing metrics:', error);
   }
 }
 
@@ -293,7 +285,6 @@ async function sendMetricsToGrafana(metrics) {
 //send all metrics
 async function sendMetricsPeriodically() {
   try {
-    console.log('sendMetricsPeriodically called');
     const metrics = [];
     const methods = ['GET', 'POST', 'PUT', 'DELETE'];
 
@@ -368,10 +359,7 @@ async function sendMetricsPeriodically() {
     metrics.push(createMetric('pizza_creation_latency_ms', avgPizzaLatency, 'ms', 'gauge', 'asDouble', {}));
 
     if (metrics.length > 0) {
-      console.log(`Prepared ${metrics.length} metrics, calling sendMetricsToGrafana`);
       await sendMetricsToGrafana(metrics);
-    } else {
-      console.log('No metrics to send');
     }
 
 
@@ -412,7 +400,6 @@ async function sendMetricsPeriodically() {
 
 // Startreporting
 function startMetricReporting(period = 10000) {
-  console.log(`Starting metric reporting with period ${period}ms`);
   setInterval(() => {
     sendMetricsPeriodically();
   }, period);
