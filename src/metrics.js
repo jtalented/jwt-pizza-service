@@ -91,9 +91,10 @@ function pizzaPurchase(successful, latency, price) {
 
 // Get CPU usage percentage
 function getCpuUsagePercentage() {
-  const cpuUsage = os.loadavg()[0] / os.cpus().length;
-
-
+  const loadAvg = os.loadavg()[0];
+  const cpuCount = os.cpus().length;
+  
+  const cpuUsage = loadAvg / cpuCount;
   return parseFloat((cpuUsage * 100).toFixed(2));
 }
 
@@ -146,7 +147,7 @@ function getActiveUsersCount() {
 
 // Create a metric
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
-  attributes = { ...attributes, source: config.metrics?.source || 'unknown' };
+  attributes = { ...attributes, source: config.metrics.source };
 
 
 
@@ -371,13 +372,9 @@ async function sendMetricsPeriodically() {
 
 // Startreporting
 function startMetricReporting(period = 10000) {
-  const interval = setInterval(() => {
+  setInterval(() => {
     sendMetricsPeriodically();
   }, period);
-  if (interval.unref) {
-    interval.unref();
-  }
-  return interval;
 }
 
 module.exports = {
@@ -385,5 +382,6 @@ module.exports = {
   trackAuthAttempt,
   pizzaPurchase,
   startMetricReporting,
+  sendMetricsPeriodically,
 };
 
