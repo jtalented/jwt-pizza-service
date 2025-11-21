@@ -142,7 +142,7 @@ class Logger {
 
   sanitize(logData) {
     let sanitized = JSON.stringify(logData);
-    sanitized = sanitized.replace(/"password"\s*:\s*"[^"]*"/g, '"password": "****"');
+    sanitized = sanitized.replace(/"password"\s*:\s*"[^"]*"/gi, '"password": "****"');
     sanitized = sanitized.replace(/"token"\s*:\s*"[^"]*"/g, '"token": "****"');
     sanitized = sanitized.replace(/"authorization"\s*:\s*"[^"]*"/g, '"authorization": "****"');
     return sanitized;
