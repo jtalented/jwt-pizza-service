@@ -102,6 +102,7 @@ orderRouter.post(
   authRouter.authenticateToken,
   (req, res, next) => {
     if (enableChaos && Math.random() < 0.5) {
+      metrics.pizzaPurchase(false, 0, 0);
       throw new StatusCodeError('Chaos monkey', 500);
     }
     next();
